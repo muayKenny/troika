@@ -1,5 +1,7 @@
 import { createDerivedMaterial, voidMainRegExp } from 'troika-three-utils'
-import { Color, Vector2, Vector4, Matrix3 } from 'three'
+import { Color, Vector2, Vector4, Matrix3, Texture } from 'three'
+import { createTextDerivedNodeMaterial } from './TextDerivedNodeMaterial.js'
+
 
 // language=GLSL
 const VERTEX_DEFS = `
@@ -201,57 +203,61 @@ if (edgeAlpha == 0.0) {
 }
 `
 
-
 /**
  * Create a material for rendering text, derived from a baseMaterial
  */
 export function createTextDerivedMaterial(baseMaterial) {
-  const textMaterial = createDerivedMaterial(baseMaterial, {
-    chained: true,
-    extensions: {
-      derivatives: true
-    },
-    uniforms: {
-      uTroikaSDFTexture: {value: null},
-      uTroikaSDFTextureSize: {value: new Vector2()},
-      uTroikaSDFGlyphSize: {value: 0},
-      uTroikaSDFExponent: {value: 0},
-      uTroikaTotalBounds: {value: new Vector4(0,0,0,0)},
-      uTroikaClipRect: {value: new Vector4(0,0,0,0)},
-      uTroikaEdgeOffset: {value: 0},
-      uTroikaFillOpacity: {value: 1},
-      uTroikaPositionOffset: {value: new Vector2()},
-      uTroikaCurveRadius: {value: 0},
-      uTroikaBlurRadius: {value: 0},
-      uTroikaStrokeWidth: {value: 0},
-      uTroikaStrokeColor: {value: new Color()},
-      uTroikaStrokeOpacity: {value: 1},
-      uTroikaOrient: {value: new Matrix3()},
-      uTroikaUseGlyphColors: {value: true},
-      uTroikaSDFDebug: {value: false}
-    },
-    vertexDefs: VERTEX_DEFS,
-    vertexTransform: VERTEX_TRANSFORM,
-    fragmentDefs: FRAGMENT_DEFS,
-    fragmentColorTransform: FRAGMENT_TRANSFORM,
-    customRewriter({vertexShader, fragmentShader}) {
-      let uDiffuseRE = /\buniform\s+vec3\s+diffuse\b/
-      if (uDiffuseRE.test(fragmentShader)) {
-        // Replace all instances of `diffuse` with our varying
-        fragmentShader = fragmentShader
-          .replace(uDiffuseRE, 'varying vec3 vTroikaGlyphColor')
-          .replace(/\bdiffuse\b/g, 'vTroikaGlyphColor')
-        // Make sure the vertex shader declares the uniform so we can grab it as a fallback
-        if (!uDiffuseRE.test(vertexShader)) {
-          vertexShader = vertexShader.replace(
-            voidMainRegExp,
-            'uniform vec3 diffuse;\n$&\nvTroikaGlyphColor = uTroikaUseGlyphColors ? aTroikaGlyphColor / 255.0 : diffuse;\n'
-          )
+  let textMaterial;
+  if (!baseMaterial.isNodeMaterial) {
+    textMaterial = createDerivedMaterial(baseMaterial, {
+      chained: true,
+      extensions: {
+        derivatives: true
+      },
+      uniforms: {
+        uTroikaSDFTexture: {value: null},
+        uTroikaSDFTextureSize: {value: new Vector2()},
+        uTroikaSDFGlyphSize: {value: 0},
+        uTroikaSDFExponent: {value: 0},
+        uTroikaTotalBounds: {value: new Vector4(0,0,0,0)},
+        uTroikaClipRect: {value: new Vector4(0,0,0,0)},
+        uTroikaEdgeOffset: {value: 0},
+        uTroikaFillOpacity: {value: 1},
+        uTroikaPositionOffset: {value: new Vector2()},
+        uTroikaCurveRadius: {value: 0},
+        uTroikaBlurRadius: {value: 0},
+        uTroikaStrokeWidth: {value: 0},
+        uTroikaStrokeColor: {value: new Color()},
+        uTroikaStrokeOpacity: {value: 1},
+        uTroikaOrient: {value: new Matrix3()},
+        uTroikaUseGlyphColors: {value: true},
+        uTroikaSDFDebug: {value: false}
+      },
+      vertexDefs: VERTEX_DEFS,
+      vertexTransform: VERTEX_TRANSFORM,
+      fragmentDefs: FRAGMENT_DEFS,
+      fragmentColorTransform: FRAGMENT_TRANSFORM,
+      customRewriter({vertexShader, fragmentShader}) {
+        let uDiffuseRE = /\buniform\s+vec3\s+diffuse\b/
+        if (uDiffuseRE.test(fragmentShader)) {
+          // Replace all instances of `diffuse` with our varying
+          fragmentShader = fragmentShader
+            .replace(uDiffuseRE, 'varying vec3 vTroikaGlyphColor')
+            .replace(/\bdiffuse\b/g, 'vTroikaGlyphColor')
+          // Make sure the vertex shader declares the uniform so we can grab it as a fallback
+          if (!uDiffuseRE.test(vertexShader)) {
+            vertexShader = vertexShader.replace(
+              voidMainRegExp,
+              'uniform vec3 diffuse;\n$&\nvTroikaGlyphColor = uTroikaUseGlyphColors ? aTroikaGlyphColor / 255.0 : diffuse;\n'
+            )
+          }
         }
+        return { vertexShader, fragmentShader }
       }
-      return { vertexShader, fragmentShader }
-    }
-  })
+    })
+  } else {
+    textMaterial = createTextDerivedNodeMaterial(baseMaterial);
+  }
 
   // Force transparency - TODO is this reasonable?
   textMaterial.transparent = true
