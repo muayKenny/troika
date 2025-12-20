@@ -1,7 +1,6 @@
 import { createDerivedMaterial, voidMainRegExp } from 'troika-three-utils'
 import { Color, Vector2, Vector4, Matrix3 } from 'three'
 
-
 // language=GLSL
 const VERTEX_DEFS = `
 uniform vec2 uTroikaSDFTextureSize;
@@ -201,6 +200,7 @@ if (edgeAlpha == 0.0) {
   discard;
 }
 `
+
 
 /**
  * Create a material for rendering text, derived from a baseMaterial
