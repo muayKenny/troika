@@ -13,6 +13,10 @@
   "main": "dist/troika-three-text.umd.js",
   "module": "dist/troika-three-text.esm.js",
   "module:src": "src/index.js",
+  "exports": {
+    ".": "./dist/troika-three-text.esm.js",
+    "./webgpu": "./dist/troika-three-text.webgpu.esm.js"
+  },
   "dependencies": {
     "bidi-js": "^1.0.2",
     "troika-three-utils": "^0.53.0",
@@ -20,7 +24,7 @@
     "webgl-sdf-generator": "1.1.1"
   },
   "peerDependencies": {
-    "three": ">=0.181.0"
+    "three": ">=0.125.0"
   },
   "devDependencies": {
     "@lojjic/typr": "0.3.8-lojjic1",

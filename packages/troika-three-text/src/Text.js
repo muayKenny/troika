@@ -8,17 +8,12 @@ import {
   Vector3,
   Vector2,
 } from 'three'
-import { MeshBasicNodeMaterial } from 'three/webgpu';
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
 import { getTextRenderInfo } from './TextBuilder.js'
 
+
 const defaultMaterial = /*#__PURE__*/ new MeshBasicMaterial({
-  color: 0xffffff,
-  side: DoubleSide,
-  transparent: true
-})
-const defaultMaterialWebGPU = /*#__PURE__*/ new MeshBasicNodeMaterial({
   color: 0xffffff,
   side: DoubleSide,
   transparent: true
@@ -229,12 +224,6 @@ class Text extends Mesh {
 
 
     // === Presentation properties: === //
-
-    /**
-     * @member {boolean} webGPU
-     * Enables the use of WebGPURenderer compatible default materials.
-     */
-    this.webGPU = false;
 
     /**
      * @member {THREE.Material} material
@@ -533,7 +522,7 @@ class Text extends Mesh {
   // lazily on _read_ rather than write to avoid unnecessary wrapping on transient values.
   get material() {
     let derivedMaterial = this._derivedMaterial
-    const baseMaterial = this._baseMaterial || this._defaultMaterial || (this._defaultMaterial = (this.webGPU ? defaultMaterialWebGPU : defaultMaterial).clone())
+    const baseMaterial = this._baseMaterial || this._defaultMaterial || (this._defaultMaterial = defaultMaterial.clone())
     if (!derivedMaterial || !derivedMaterial.isDerivedFrom(baseMaterial)) {
       derivedMaterial = this._derivedMaterial = this.createDerivedMaterial(baseMaterial)
       // dispose the derived material when its base material is disposed:

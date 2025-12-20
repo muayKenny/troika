@@ -281,7 +281,28 @@ export function createTextDerivedNodeMaterial(baseMaterial) {
   const baseNode = textMaterial.colorNode ? textMaterial.colorNode : materialColor;
   textMaterial.colorNode = troikaSDF({ baseNode });
 
-  return textMaterial;
+  // Force transparency - TODO is this reasonable?
+  textMaterial.transparent = true
+
+  // Force single draw call when double-sided
+  textMaterial.forceSinglePass = true
+
+  Object.defineProperties(textMaterial, {
+    isTroikaTextMaterial: {value: true},
+
+    // WebGLShadowMap reverses the side of the shadow material by default, which fails
+    // for planes, so here we force the `shadowSide` to always match the main side.
+    shadowSide: {
+      get() {
+        return this.side
+      },
+      set() {
+        //no-op
+      }
+    }
+  })
+
+  return textMaterial
 }
 
 
