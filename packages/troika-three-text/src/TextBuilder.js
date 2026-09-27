@@ -477,16 +477,29 @@ function toAbsoluteURL(path) {
   return linkEl.href
 }
 
+let atlasReadback = false
+
+/**
+ * Always upload the SDF atlas as raw pixels read back from its canvas, never the canvas itself.
+ * WebGPU needs this: copying the canvas into a GPU texture (copyExternalImageToTexture) loses the
+ * RGB channels wherever alpha is low, and the atlas packs a fourth glyph into alpha. Glyphs whose
+ * square has no fourth glyph vanish, and the rest pick up streaks at their edges.
+ */
+export function enableSDFAtlasReadback() {
+  atlasReadback = true
+}
+
 /**
  * Safari < v15 seems unable to use the SDF webgl canvas as a texture. This applies a workaround
  * where it reads the pixels out of that canvas and uploads them as a data texture instead, at
- * a slight performance cost.
+ * a slight performance cost. WebGPU opts into the same path (enableSDFAtlasReadback).
  */
 function safariPre15Workaround(atlas) {
   // Use createImageBitmap support as a proxy for Safari<15, all other mainstream browsers
   // have supported it for a long while so any false positives should be minimal.
-  if (typeof createImageBitmap !== 'function') {
-    console.info('Safari<15: applying SDF canvas workaround')
+  const safariPre15 = typeof createImageBitmap !== 'function'
+  if (atlasReadback || safariPre15) {
+    if (safariPre15) console.info('Safari<15: applying SDF canvas workaround')
     const {sdfCanvas, sdfTexture} = atlas
     const {width, height} = sdfCanvas
     const gl = atlas.sdfCanvas.getContext('webgl')

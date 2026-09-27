@@ -1,5 +1,6 @@
 import { DoubleSide, IntType } from 'three'
 import { Text } from "../Text.js";
+import { enableSDFAtlasReadback } from '../TextBuilder.js'
 import { createTextDerivedNodeMaterial } from './TextDerivedNodeMaterial.js'
 import { MeshBasicNodeMaterial } from "three/webgpu";
 
@@ -24,6 +25,7 @@ class WebGPUText extends Text {
     this.geometry.updateGlyphs(new Float32Array(), new Uint16Array(), [], [], new Uint8Array())
     // updateGlyphs opens the draw range; like GlyphsGeometry, draw nothing until the first sync.
     this.geometry.setDrawRange(0, 0)
+    enableSDFAtlasReadback()
   }
 
   /**
