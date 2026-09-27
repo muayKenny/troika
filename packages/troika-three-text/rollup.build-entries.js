@@ -1,3 +1,4 @@
+/* eslint-env node */
 const { LERNA_PACKAGE_NAME } = process.env
 
 const entries = {
