@@ -1,4 +1,4 @@
-import { DoubleSide } from 'three'
+import { DoubleSide, IntType } from 'three'
 import { Text } from "../Text.js";
 import { createTextDerivedNodeMaterial } from './TextDerivedNodeMaterial.js'
 import { MeshBasicNodeMaterial } from "three/webgpu";
@@ -15,6 +15,16 @@ const defaultMaterialWebGPU = /*#__PURE__*/ new MeshBasicNodeMaterial({
  * Variant of the Text class that uses materials compatible with THREE.WebGPURenderer.
  */
 class WebGPUText extends Text {
+
+  constructor() {
+    super()
+    // The TSL shader reads the glyph index as an integer; rebuild the (still empty) attribute
+    // with that binding before anything renders.
+    this.geometry.glyphIndexGpuType = IntType
+    this.geometry.updateGlyphs(new Float32Array(), new Uint16Array(), [], [], new Uint8Array())
+    // updateGlyphs opens the draw range; like GlyphsGeometry, draw nothing until the first sync.
+    this.geometry.setDrawRange(0, 0)
+  }
 
   /**
    * Create the text derived material from the base material. Can be overridden to use a custom

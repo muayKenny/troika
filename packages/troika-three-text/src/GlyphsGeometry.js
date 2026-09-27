@@ -5,7 +5,6 @@ import {
   Sphere,
   Box3,
   FloatType,
-  IntType,
 } from 'three'
 
 const templateGeometries = {}
@@ -69,6 +68,11 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     // Preallocate empty bounding objects
     this.boundingSphere = new Sphere()
     this.boundingBox = new Box3()
+
+    // How the GPU reads the glyph index. Float for Text: its GLSL declares a float attribute,
+    // and an integer binding makes WebGLRenderer fail every draw with INVALID_OPERATION.
+    // WebGPUText switches this to IntType, which its TSL shader expects.
+    this.glyphIndexGpuType = FloatType
     this.updateGlyphs(new Float32Array(), new Uint16Array(), [], [], new Uint8Array())
 
     // Prevent rendering while we don't have any glyphs
@@ -126,7 +130,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
   updateGlyphs(glyphBounds, glyphAtlasIndices, blockBounds, chunkedBounds, glyphColors) {
     // Update the instance attributes
     this.updateAttributeData(glyphBoundsAttrName, glyphBounds, 4)
-    this.updateAttributeData(glyphIndexAttrName, glyphAtlasIndices, 1, IntType)
+    this.updateAttributeData(glyphIndexAttrName, glyphAtlasIndices, 1, this.glyphIndexGpuType)
     this.updateAttributeData(glyphColorAttrName, glyphColors || new Uint8Array(glyphAtlasIndices.length*3), 3)
     this._blockBounds = blockBounds
     this._chunkedBounds = chunkedBounds
@@ -198,7 +202,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     const attr = this.getAttribute(attrName)
     if (newArray) {
       // If length isn't changing, just update the attribute's array data
-      if (attr && attr.array.length === newArray.length) {
+      if (attr && attr.array.length === newArray.length && attr.gpuType === gpuType) {
         attr.array.set(newArray)
         // Compatibility shim: Three.js <r156 renderers expect updateRange (singular object),
         // while newer Three.js BufferAttribute uses updateRanges (array). If this attribute
