@@ -1,4 +1,4 @@
-import { DoubleSide, IntType } from 'three'
+import { Color, DoubleSide, IntType } from 'three'
 import { Text } from "../Text.js";
 import { enableSDFAtlasReadback } from '../TextBuilder.js'
 import { createTextDerivedNodeMaterial } from './TextDerivedNodeMaterial.js'
@@ -26,6 +26,19 @@ class WebGPUText extends Text {
     // updateGlyphs opens the draw range; like GlyphsGeometry, draw nothing until the first sync.
     this.geometry.setDrawRange(0, 0)
     enableSDFAtlasReadback()
+  }
+
+  _prepareForRender(material) {
+    super._prepareForRender(material)
+    // With no `color` set, Text deletes the derived material's own color so that it inherits the
+    // base material's through the prototype chain. This derived material is a plain clone, with
+    // no chain to inherit through, so the shader would read no color at all and render black.
+    // Copy the base's color back in, into one reused Color rather than a new one every frame.
+    const base = material.baseMaterial
+    if (material.color === undefined && base && base.color) {
+      if (!material._troikaInheritedColor) material._troikaInheritedColor = new Color()
+      material.color = material._troikaInheritedColor.copy(base.color)
+    }
   }
 
   /**
