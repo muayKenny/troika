@@ -100,6 +100,8 @@ The WebGPU build carries its own copy of the text builder, so helpers imported f
 
 If you set a custom [`material`](#material), use a node material such as `MeshStandardNodeMaterial`; the default is a `MeshBasicNodeMaterial`. `BatchedText` isn't available in the WebGPU build yet.
 
+See [`packages/troika-examples/text-webgpu`](../troika-examples/text-webgpu/) for a runnable example.
+
 ## Supported properties
 
 Instances of `Text` support the following configuration properties:
