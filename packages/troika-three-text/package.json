@@ -14,8 +14,13 @@
   "module": "dist/troika-three-text.esm.js",
   "module:src": "src/index.js",
   "exports": {
-    ".": "./dist/troika-three-text.esm.js",
-    "./webgpu": "./dist/troika-three-text.webgpu.esm.js"
+    ".": {
+      "import": "./dist/troika-three-text.esm.js",
+      "require": "./dist/troika-three-text.umd.js"
+    },
+    "./webgpu": "./dist/troika-three-text.webgpu.esm.js",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
   },
   "dependencies": {
     "bidi-js": "^1.0.2",
