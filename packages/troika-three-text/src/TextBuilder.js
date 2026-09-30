@@ -484,9 +484,21 @@ let atlasReadback = false
  * WebGPU needs this: copying the canvas into a GPU texture (copyExternalImageToTexture) loses the
  * RGB channels wherever alpha is low, and the atlas packs a fourth glyph into alpha. Glyphs whose
  * square has no fourth glyph vanish, and the rest pick up streaks at their edges.
+ *
+ * Atlases built before this is enabled (by preloadFont, say, ahead of the first WebGPUText) were
+ * uploaded from the canvas, and a later request that needs no new glyphs never re-uploads them,
+ * so they are read back here.
  */
 export function enableSDFAtlasReadback() {
+  if (atlasReadback) return
   atlasReadback = true
+  for (const size in atlases) {
+    const atlas = atlases[size]
+    if (atlas.glyphCount && !atlas.contextLost) {
+      safariPre15Workaround(atlas)
+      atlas.sdfTexture.needsUpdate = true
+    }
+  }
 }
 
 /**
